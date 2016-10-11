@@ -1,0 +1,23 @@
+{
+    "name": "jekyllmk-fts",
+    "private": true,
+    "version": "0.0.1",
+    "description": "FTS via sqlite3 for jekyllmk",
+    "main": "fts-sql.js",
+    "dependencies": {
+	"minimist": "~1.2.0",
+	"lodash": "~4.13.1",
+	"sqlite3": "~3.1.6",
+	"shell-quote": "~1.6.1"
+    },
+    "devDependencies": {
+	"mocha": "~3.1.0"
+    },
+    "keywords": [
+	"fts",
+	"sqlite",
+	"jekyllmk"
+    ],
+    "author": "Alexander Gromnitsky",
+    "license": "MIT"
+}

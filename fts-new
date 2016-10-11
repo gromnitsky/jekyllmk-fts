@@ -1,0 +1,10 @@
+#!/bin/sh
+
+__filename=`readlink -f $0`
+__dirname=`dirname ${__filename}`
+
+db=fts.sqlite3
+db_temp=`mktemp -u fts.sqlite3.XXXXXX`
+
+${__dirname}/fts-sql.js "$@" | sqlite3 -batch $db_temp \
+    && mv $db_temp $db
