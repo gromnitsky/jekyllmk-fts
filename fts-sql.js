@@ -82,10 +82,10 @@ authors.name AS author,
 posts_tags.tag_id,
 tags.name AS tag
 FROM posts
-INNER JOIN posts_authors ON posts.id==posts_authors.post_id
-INNER JOIN authors ON posts_authors.author_id==authors.id
-INNER JOIN posts_tags ON posts.id==posts_tags.post_id
-INNER JOIN tags ON posts_tags.tag_id==tags.id`)
+LEFT JOIN posts_authors ON posts.id==posts_authors.post_id
+LEFT JOIN authors ON posts_authors.author_id==authors.id
+LEFT JOIN posts_tags ON posts.id==posts_tags.post_id
+LEFT JOIN tags ON posts_tags.tag_id==tags.id`)
 
 // A view that includes tags & authors as a comma separated string
 o(`CREATE VIEW _metalists AS
@@ -94,10 +94,10 @@ posts.id,
 GROUP_CONCAT(authors.name) AS authorslist,
 GROUP_CONCAT(tags.name) AS tagslist
 FROM posts
-INNER JOIN posts_authors ON posts.id=posts_authors.post_id
-INNER JOIN authors ON posts_authors.author_id==authors.id
-INNER JOIN posts_tags ON posts.id==posts_tags.post_id
-INNER JOIN tags ON posts_tags.tag_id==tags.id GROUP BY posts.id`)
+LEFT JOIN posts_authors ON posts.id=posts_authors.post_id
+LEFT JOIN authors ON posts_authors.author_id==authors.id
+LEFT JOIN posts_tags ON posts.id==posts_tags.post_id
+LEFT JOIN tags ON posts_tags.tag_id==tags.id GROUP BY posts.id`)
 
 // A view for all user queries
 o(`CREATE VIEW meta AS
