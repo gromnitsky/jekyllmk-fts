@@ -1,0 +1,82 @@
+#!/usr/bin/env node
+
+'use strict';
+
+let http = require('http')
+let url = require('url')
+
+let query = require('./lib/query')
+
+let conf = {
+    db_file: 'fts.sqlite3',
+    sort: 'DESC',
+    limit: 10,
+}
+
+// a flag to prevent a double erroring during a request
+let request_had_error = false
+
+let errx = function(res, code, msg) {
+    if (!request_had_error) {
+	res.setHeader('Access-Control-Allow-Origin', '*')
+	res.statusCode = code
+	res.statusMessage = msg
+	res.end()
+    }
+    console.log(msg instanceof Error ? msg : `ERROR: ${msg}`)
+    request_had_error = true
+}
+
+let listen = function(srv) {
+    srv.listen(process.env.PORT || 3000,
+	       function() {
+		   console.error('Listening: http://' +
+				 this.address().address +
+				 (this.address().port === 80 ?
+				  "" : ":" + this.address().port))
+	       })
+}
+
+
+// int main(int argc, char **argv)
+
+let mydb = new query.DB(conf.db_file)
+
+let server = http.createServer(function(req, res) {
+    request_had_error = false
+    if (req.method !== "GET") {
+	errx(res, 501, "not implemented")
+	return
+    }
+
+    let purl = url.parse(req.url, true)
+    if (!purl.query.q) {
+	errx(res, 412, "`?q=str` param is required")
+	return
+    }
+
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Content-Type', 'application/x-json-stream')
+
+    let params = query.argv_parse(purl.query.q)
+    query.search(mydb, params, conf)
+    .then( reader => {
+	reader.pipe(res)
+    }).catch( err => {
+	errx(res, 500, err)
+    })
+
+})
+
+server.on('error', function(err) {
+    console.error(err)
+})
+
+server.on('clientError', function(err, socket) {
+    socket.write('HTTP/1.1 400 Bad Request\r\n')
+    socket.write('Content-Length: 0\r\n')
+    socket.write('Access-Control-Allow-Origin: *\r\n')
+    socket.end('\r\n')
+})
+
+listen(server)
