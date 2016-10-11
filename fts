@@ -16,11 +16,14 @@
 */
 
 let path = require('path')
+let stream = require('stream')
 
 let query = require('./lib/query')
 
 let conf = {
-    db_file: 'fts.sqlite3'
+    db_file: 'fts.sqlite3',
+    sort: 'DESC',
+    limit: 10,
 }
 
 let colourise_snippet = function(s) {
@@ -47,30 +50,37 @@ let yellow = function(s) {
     return "\u001b[0;33m" + s + "\u001b[0;0m"
 }
 
+let row_print = function(r) {
+    let file
+    if (r.year) {
+	// a regular post
+	file = path.join(r.year.toString(), query.pad(r.month), query.pad(r.day), r.name + '.md')
+    } else {
+	// a page
+	file = path.join('p', r.name + '.md')
+    }
+    console.log([magenta(file), r.subject, green(r.authorslist), yellow(r.tagslist)].join(': '))
+    if (r.snippet.length > 0) console.log(colourise_snippet(r.snippet))
+}
+
+let row_in_colour = function() {
+    let ws = stream.Writable()
+    ws._write = function(chunk, enc, next) {
+	row_print(JSON.parse(chunk))
+	next()
+    }
+    return ws
+}
+
 
 // int main(int argc, char **argv)
-conf.search = query.argv_parse(process.argv.slice(2))
-console.log(conf.search)
+let params = query.argv_parse(process.argv.slice(2))
+console.log(params)
 
-let db = new query.DB(conf.db_file)
-let prepare = [`SELECT DISTINCT
-meta.id, meta.year, meta.month, meta.day, meta.name, meta.subject, meta.authorslist, meta.tagslist, snippet(corpora) AS snippet
-FROM meta
-INNER JOIN corpora ON meta.id == corpora.id
-WHERE`]
+let mydb = new query.DB(conf.db_file)
 
-if (conf.search._ !== '') prepare.push(`body match '${query.q(conf.search._)}'`)
-
-conf.search.t.forEach( val => {
-    prepare.push(`tag == '${query.q(val)}'`)
-})
-
-conf.search.a.forEach( val => {
-    prepare.push(`author == '${query.q(val)}'`)
-})
-
-let sql = prepare[0] + ' ' + prepare.slice(1).join(' AND ') + ' ORDER BY meta.id DESC'
-console.log(sql)
-db.all(sql).then( r => {
-    console.log(r)
-})
+let ric = row_in_colour()
+query.search(mydb, params, conf)
+    .then( reader => {
+	reader.pipe(ric)
+    })
