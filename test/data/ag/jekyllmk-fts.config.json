@@ -1,0 +1,16 @@
+{
+    "production": {
+	"server_port": 3000,
+	"db_file": "fts.sqlite3",
+	"sort": "DESC",
+	"limit": 10,
+	"verbose": 0
+    },
+    "development": {
+	"server_port": 3000,
+	"db_file": "fts.sqlite3",
+	"sort": "ASC",
+	"limit": 20,
+	"verbose": 1
+    }
+}

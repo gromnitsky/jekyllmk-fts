@@ -7,14 +7,10 @@ let url = require('url')
 
 let query = require('./lib/query')
 
-let conf = {
-    db_file: 'fts.sqlite3',
-    sort: 'DESC',
-    limit: 10,
-}
-
 // a flag to prevent a double erroring during a request
 let request_had_error = false
+
+let log =  console.error.bind(console, 'fts-server:')
 
 let errx = function(res, code, msg) {
     if (!request_had_error) {
@@ -23,23 +19,24 @@ let errx = function(res, code, msg) {
 	res.statusMessage = msg
 	res.end()
     }
-    console.log(msg instanceof Error ? msg : `ERROR: ${msg}`)
+    log(msg instanceof Error ? msg : `ERROR: ${msg}`)
     request_had_error = true
 }
 
 let listen = function(srv) {
-    srv.listen(process.env.PORT || 3000,
+    srv.listen(process.env.PORT || conf.server_port || 3000,
 	       function() {
-		   console.error('Listening: http://' +
-				 this.address().address +
-				 (this.address().port === 80 ?
-				  "" : ":" + this.address().port))
+		   log('Listening: http://' +
+		       this.address().address +
+		       (this.address().port === 80 ?
+			"" : ":" + this.address().port))
 	       })
 }
 
 
 // int main(int argc, char **argv)
 
+let conf = query.conf()
 let mydb = new query.DB(conf.db_file)
 
 let server = http.createServer(function(req, res) {
@@ -69,7 +66,7 @@ let server = http.createServer(function(req, res) {
 })
 
 server.on('error', function(err) {
-    console.error(err)
+    log(err)
 })
 
 server.on('clientError', function(err, socket) {

@@ -20,12 +20,6 @@ let stream = require('stream')
 
 let query = require('./lib/query')
 
-let conf = {
-    db_file: 'fts.sqlite3',
-    sort: 'DESC',
-    limit: 10,
-}
-
 let colourise_snippet = function(s) {
     if (!process.stdout.isTTY) return s
     let t = {
@@ -74,8 +68,9 @@ let row_in_colour = function() {
 
 
 // int main(int argc, char **argv)
+let conf = query.conf()
 let params = query.argv_parse(process.argv.slice(2))
-console.log(params)
+conf.log(params)
 
 let mydb = new query.DB(conf.db_file)
 
