@@ -1,0 +1,76 @@
+#!/usr/bin/env node
+
+'use strict';
+
+/*
+  Usage: fts [options] query
+
+  -d [-]date[,date]
+  -t tag
+  -a author
+
+  Options narrow down the result & are applied posterior to a query
+  lookup.
+
+  multiple -t or -a mean OR
+*/
+
+let path = require('path')
+
+let query = require('./lib/query')
+
+let conf = {
+    db_file: 'fts.sqlite3'
+}
+
+let colourise_snippet = function(s) {
+    if (!process.stdout.isTTY) return s
+    let t = {
+	'b': "\u001b[0;1m",
+	'/b': "\u001b[0;0m",
+    }
+    return s.replace(/<(\/?b)>/g, (all, p) => t[p]) + t['/b']
+}
+
+let magenta = function(s) {
+    if (!process.stdout.isTTY) return s
+    return "\u001b[0;35m" + s + "\u001b[0;0m"
+}
+
+let green = function(s) {
+    if (!process.stdout.isTTY) return s
+    return "\u001b[0;32m" + s + "\u001b[0;0m"
+}
+
+let yellow = function(s) {
+    if (!process.stdout.isTTY) return s
+    return "\u001b[0;33m" + s + "\u001b[0;0m"
+}
+
+
+// int main(int argc, char **argv)
+conf.search = query.argv_parse(process.argv.slice(2))
+console.log(conf.search)
+
+let db = new query.DB(conf.db_file)
+let prepare = [`SELECT DISTINCT
+meta.id, meta.year, meta.month, meta.day, meta.name, meta.subject, meta.authorslist, meta.tagslist, snippet(corpora) AS snippet
+FROM meta
+INNER JOIN corpora ON meta.id == corpora.id
+WHERE`]
+
+if (conf.search._ !== '') prepare.push(`body match '${query.q(conf.search._)}'`)
+
+conf.search.t.forEach( val => {
+    prepare.push(`tag == '${query.q(val)}'`)
+})
+
+conf.search.a.forEach( val => {
+    prepare.push(`author == '${query.q(val)}'`)
+})
+
+let sql = prepare[0] + ' ' + prepare.slice(1).join(' AND ') + ' ORDER BY meta.id DESC'
+console.log(sql)
+db.all(sql).then( r => {
+    console.log(r)
+})
