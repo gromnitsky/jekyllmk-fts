@@ -8,7 +8,19 @@
 	"minimist": "~1.2.0",
 	"lodash": "~4.13.1",
 	"sqlite3": "~3.1.6",
-	"shell-quote": "~1.6.1"
+	"shell-quote": "~1.6.1",
+
+	"zone.js": "~0.6.25",
+	"reflect-metadata": "~0.1.8",
+	"rxjs": "5.0.0-beta.12",
+	"@angular/core": "~2.0.2",
+	"@angular/common": "~2.0.2",
+	"@angular/compiler": "~2.0.2",
+	"@angular/platform-browser": "~2.0.2",
+	"@angular/platform-browser-dynamic": "~2.0.2",
+	"@angular/http": "~2.0.2",
+	"@angular/forms": "~2.0.2",
+	"@angular/router": "~3.0.2"
     },
     "devDependencies": {
 	"mocha": "~3.1.0"
