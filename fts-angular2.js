@@ -1,20 +1,24 @@
-/* globals ng */
+/* globals ng, JekyllmkConfig */
 'use strict';
 
 // Fetch a post
 let JekyllmkFTSService = ng.core.Class({
     constructor: [ng.http.Http, function(http) {
 	console.log('JekyllmkFTSService')
+	if (typeof JekyllmkConfig === 'undefined') {
+	    throw new Error('JekyllmkFTSService requires a global JekyllmkConfig')
+	}
+	JekyllmkConfig.fts || (JekyllmkConfig.fts = 'http://localhost:3000');
 	this.http = http
     }],
 
-    url: function(host, q) {
-	return `${host}/?q=${q}`
+    url: function(q) {
+	return `${JekyllmkConfig.fts}/?q=${q}`
     },
 
-    xjson$: function(host, q) {
+    xjson$: function(q) {
 	// FIXME: pad month & day
-	return this.http.get(this.url(host, q)).map(res => {
+	return this.http.get(this.url(q)).map(res => {
 	    let r = res._body
 	    return r.split("\n").filter( line => line.length).map( line => {
 		let json = JSON.parse(line)
@@ -95,13 +99,15 @@ let JekyllmkFTS = ng.core.Component({
 }).Class({
     constructor:
     [ng.router.Router, ng.router.ActivatedRoute, ng.common.Location,
+     ng.platformBrowser.Title,
      JekyllmkFTSService,
-     function(router, activated_route, location, server) {
+     function(router, activated_route, location, title, server) {
 	 console.log("JekyllmkFTS")
 	 this.location = location
+	 this.title = title
 	 this.server = server
-	 this.error = null
 
+	 this.error = null
 	 // the callback runs every time route params change
 	 activated_route.params.subscribe( data => {
 	     this.query = data.q
@@ -113,17 +119,18 @@ let JekyllmkFTS = ng.core.Component({
 
     on_submit: function() {
 	console.log("JekyllmkFTS: on_submit")
+	this.title.setTitle(`${JekyllmkConfig.title} :: FTS :: ${this.query}`)
 	if (!this.query) {
 	    this.error = 'the query is empty'
 	    return
 	}
 
-	this.server.xjson$('http://localhost:3000', this.query).toPromise()
+	this.server.xjson$(this.query).toPromise()
 	    .then( data => {
 		this.error = null
 		this.result = data
 	    }).catch( err => {
-		this.error = 'failed to load the response from the database server'
+		this.error = `failed to load the response from the database server at ${JekyllmkConfig.fts}`
 		console.log(err)
 	    })
 

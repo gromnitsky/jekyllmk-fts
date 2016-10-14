@@ -40,8 +40,8 @@ app.MainModule = ng.core.NgModule({
 	ng.http.HttpModule,
 	ng.router.RouterModule.forRoot([
 	    { path: '',  component: app.Home},
-	    { path: 'search',  loadChildren: 'search.js#JekyllmkFTSModule'},
-	    { path: 'search/:q',  loadChildren: 'search.js#JekyllmkFTSModule'},
+	    { path: 'search', loadChildren: 'fts-angular2.js#JekyllmkFTSModule'},
+	    { path: 'search/:q', loadChildren: 'fts-angular2.js#JekyllmkFTSModule'},
 	], { useHash: true }),
     ],
     declarations: [ app.Home, app.Main ],
@@ -52,8 +52,18 @@ app.MainModule = ng.core.NgModule({
 
 
 let boot = function() {
-    ng.platformBrowserDynamic.platformBrowserDynamic()
-	.bootstrapModule(app.MainModule)
+    let config = 'config.json'
+    fetch(config)
+	.then( res => {
+	    return res.json()
+	}).then( json => {
+	    // create a global config object
+	    window.JekyllmkConfig = json
+	    ng.platformBrowserDynamic.platformBrowserDynamic()
+		.bootstrapModule(app.MainModule)
+	}).catch( _err => {
+	    document.body.innerHTML = `<h1>Failed to load ${config}</h1>`
+	})
 }
 
 if (document.readyState === "loading")
