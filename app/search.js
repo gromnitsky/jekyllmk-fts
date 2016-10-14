@@ -1,4 +1,4 @@
-/* globals ng, Rx */
+/* globals ng */
 'use strict';
 
 // Fetch a post
@@ -94,14 +94,14 @@ let JekyllmkFTS = ng.core.Component({
 `
 }).Class({
     constructor:
-    [ng.router.Router, ng.router.ActivatedRoute, ng.common.Location, JekyllmkFTSService,
+    [ng.router.Router, ng.router.ActivatedRoute, ng.common.Location,
+     JekyllmkFTSService,
      function(router, activated_route, location, server) {
 	 console.log("JekyllmkFTS")
 	 this.location = location
 	 this.server = server
 	 this.error = null
 
-	 this.first_time = true
 	 // the callback runs every time route params change
 	 activated_route.params.subscribe( data => {
 	     this.query = data.q
@@ -109,23 +109,25 @@ let JekyllmkFTS = ng.core.Component({
 	 })
 
 	 this.result = []
-    }],
+     }],
 
     on_submit: function() {
 	console.log("JekyllmkFTS: on_submit")
+	if (!this.query) {
+	    this.error = 'the query is empty'
+	    return
+	}
 
 	this.server.xjson$('http://localhost:3000', this.query).toPromise()
-	    .then(data => {
+	    .then( data => {
 		this.error = null
 		this.result = data
 	    }).catch( err => {
-		this.error = err.message || 'failed to load the results'
+		this.error = 'failed to load the response from the database server'
 		console.log(err)
 	    })
 
-	if (!this.first_time)
-	    this.location.replaceState(`/search/${this.query}`)
-	this.first_time = false
+	this.location.replaceState(`/search/${this.query}`)
     }
 })
 
@@ -133,7 +135,13 @@ let JekyllmkFTSModule = ng.core.NgModule({
     imports: [
 	ng.common.CommonModule,
 	ng.forms.FormsModule,
-	ng.router.RouterModule,
+	ng.router.RouterModule.forChild([
+	    // FIXME: we should be able to specify our child routes
+	    // here, but in angular-2.0.2 + router-3.0.2 they are
+	    // ignored (w/ a lazy loading), thus we specify them in
+	    // the app's main module, where the bootstrap is done.
+	    { path: '', component: JekyllmkFTS},
+	], { useHash: true }),
 	ng.http.HttpModule,
     ],
     providers: [JekyllmkFTSService],
@@ -141,3 +149,6 @@ let JekyllmkFTSModule = ng.core.NgModule({
 }).Class({
     constructor: function() {},
 })
+
+// System.js looks here for the lazy loaded module name
+exports.JekyllmkFTSModule = JekyllmkFTSModule

@@ -20,18 +20,31 @@ app.Main = ng.core.Component({
     }],
 })
 
+app.Home = ng.core.Component({
+    selector: 'home',
+    template: `A Home Page
+<a href="#/search/complex">of a search 1</a>,
+<a href="#/search">and of a search 2</a>`
+}).Class({
+    constructor:
+    [ng.router.Router,
+     function(router) {
+	 this.router = router
+	 console.log("app.Home")
+    }],
+})
+
 app.MainModule = ng.core.NgModule({
     imports: [
 	ng.platformBrowser.BrowserModule,
 	ng.http.HttpModule,
 	ng.router.RouterModule.forRoot([
-	    { path: 'search/:q', component: JekyllmkFTS},
-	    { path: '',  component: JekyllmkFTS},
+	    { path: '',  component: app.Home},
+	    { path: 'search',  loadChildren: 'search.js#JekyllmkFTSModule'},
+	    { path: 'search/:q',  loadChildren: 'search.js#JekyllmkFTSModule'},
 	], { useHash: true }),
-
-	JekyllmkFTSModule
     ],
-    declarations: [ app.Main ],
+    declarations: [ app.Home, app.Main ],
     bootstrap: [ app.Main ]
 }).Class({
     constructor: function() {},
