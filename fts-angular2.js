@@ -1,6 +1,11 @@
 /* globals ng, JekyllmkConfig */
 'use strict';
 
+/*
+  This module is loaded by systemjs on demand. We don't need to weap
+  it into a function, for systemjs does it automatically.
+*/
+
 // Fetch a post
 let JekyllmkFTSService = ng.core.Class({
     constructor: [ng.http.Http, function(http) {
@@ -17,20 +22,15 @@ let JekyllmkFTSService = ng.core.Class({
     },
 
     xjson$: function(q) {
-	// FIXME: pad month & day
 	return this.http.get(this.url(q)).map(res => {
 	    let r = res._body
 	    return r.split("\n").filter( line => line.length).map( line => {
 		let json = JSON.parse(line)
 		if (json.year) {
-		    json._href = ['#', json.year, json.month, json.day, json.name].join('/') + '.md'
+		    json._href = ['#', json.year, json.month, json.day, json.name].join('/')
 		} else {
-		    json._page = true
-		    json._href = ['#', 'p', json.name].join('/') + '.md'
+		    json._href = ['#', 'p', json.name].join('/')
 		}
-		// FIXME: remove dups
-		if (json.authorslist) json.authorslist = json.authorslist.split(',')
-		if (json.tagslist) json.tagslist = json.tagslist.split(',')
 		return json
 	    })
 	})
@@ -42,20 +42,27 @@ let JekyllmkFTS = ng.core.Component({
     styles: [`
 td {
   vertical-align: top;
-  padding: 0 1em;
+  padding: 0 .7em;
+  word-break: break-all;
 }
 td:first-child {
-  padding-left: 0;
+  padding-left: .3em;
+  width: 70%;
+  word-break: break-word;
 }
 tr:nth-child(even) {
-  background-color: #f2f2f2;
+  background-color: #fafafa;
 }
 form div {
   display: flex;
 }
 form div input[type="text"] {
   flex-grow: 1;
-  margin-right: 0.5em;
+  margin-right: .5em;
+}
+form a:first-child {
+  display: inline-block;
+  margin-bottom: .3em;
 }
 `],
     template: `
@@ -66,7 +73,8 @@ form div input[type="text"] {
      (click)="help_toggle()">{{ help_anchor_text }}</a><br>
   <label [hidden]="!help" for="jekyllmk_fts--input">
     Usage: [-t tag] [-a author] [-d date1[,date2] <i>query</i><br>
-    <i>Query</i> expression is a <a href="https://www.sqlite.org/fts3.html#full_text_index_queries">sqlite3 full-text index</a> DSL.<br>
+    <i>Query</i> expression is a <a href="https://www.sqlite.org/fts3.html#full_text_index_queries">sqlite3 full-text index</a> DSL. The search result is
+(usually) auto-limited to 10 rows.<br>
     Examples:<br>
     <pre>
 	-d 2016,2017 spain
@@ -98,7 +106,7 @@ form div input[type="text"] {
 
 <td>
   <a href="{{post._href}}">{{ post.subject }}</a><br>
-  <span *ngIf="!post._page">
+  <span *ngIf="post.year">
     {{ post.year }}/{{ post.month }}/{{ post.day }}
   </span>
 
