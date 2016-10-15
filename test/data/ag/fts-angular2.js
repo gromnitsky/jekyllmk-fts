@@ -1,1 +1,1 @@
-../../../fts-angular2.js
+../../../dist/fts-angular2.js
