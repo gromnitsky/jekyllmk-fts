@@ -39,24 +39,49 @@ let JekyllmkFTSService = ng.core.Class({
 
 let JekyllmkFTS = ng.core.Component({
     selector: 'search',
+    styles: [`
+td {
+  vertical-align: top;
+  padding: 0 1em;
+}
+td:first-child {
+  padding-left: 0;
+}
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+form div {
+  display: flex;
+}
+form div input[type="text"] {
+  flex-grow: 1;
+  margin-right: 0.5em;
+}
+`],
     template: `
 <h2>Full Text Search</h2>
 
 <form (ngSubmit)="on_submit()">
-  <p>
-  <label>
-  Usage: [-t tag] [-a author] [-d date1[,date2] query
-  <br>
-  <input type="text" spellCheck="false"
-   required [(ngModel)]="query" [ngModelOptions]="{standalone: true}">
+  <a href="javascript:void(0)"
+     (click)="help_toggle()">{{ help_anchor_text }}</a><br>
+  <label [hidden]="!help" for="jekyllmk_fts--input">
+    Usage: [-t tag] [-a author] [-d date1[,date2] <i>query</i><br>
+    <i>Query</i> expression is a <a href="https://www.sqlite.org/fts3.html#full_text_index_queries">sqlite3 full-text index</a> DSL.<br>
+    Examples:<br>
+    <pre>
+	-d 2016,2017 spain
+	-d 2016-01-01,2016-12-12 -a ag -t quote  spain</pre>
   </label>
 
+  <div>
+  <input type="text" spellCheck="false" id="jekyllmk_fts--input"
+   required [(ngModel)]="query" [ngModelOptions]="{standalone: true}">
   <input type="submit">
-  </p>
+  </div>
 </form>
 
 <p *ngIf="error">
-  Error: {{ error }}
+  <b>{{ error }}</b>
 </p>
 
 <p *ngIf="result.length == 0">
@@ -67,34 +92,38 @@ let JekyllmkFTS = ng.core.Component({
   Matched: {{ result.length }} post(s).
 </p>
 
-<ul>
-  <li *ngFor="let post of result">
-    <p>
-    <span *ngIf="!post._page">
+<table>
+<tbody>
+<tr *ngFor="let post of result">
+
+<td>
+  <a href="{{post._href}}">{{ post.subject }}</a><br>
+  <span *ngIf="!post._page">
     {{ post.year }}/{{ post.month }}/{{ post.day }}
-    </span>
-    <a href="{{post._href}}">{{ post.subject }}</a>
+  </span>
 
-    <span *ngIf="post.tagslist?.length">
-      &nbsp;&nbsp;
-      <span *ngFor="let val of post.tagslist">
-        <a [routerLink]="['/search', '-t ' + val]">{{ val }}</a>
-      </span>
-    </span>
-    <span *ngIf="post.authorslist?.length">
-      &nbsp;&nbsp;
-      <span *ngFor="let val of post.authorslist">
-        <a [routerLink]="['/search', '-a ' + val]">{{ val }}</a>
-      </span>
-    </span>
+  <p *ngIf="post.snippet">{{ post.snippet }}</p>
+</td>
 
-    <span *ngIf="post.snippet">
-      <br>
-      {{ post.snippet }}
+<td>
+  <span *ngIf="post.tagslist?.length">
+    <span *ngFor="let val of post.tagslist">
+      <a [routerLink]="['/search', '-t ' + val]">{{ val }}</a>
     </span>
-    </p>
-  </li>
-</ul>
+  </span>
+</td>
+
+<td>
+  <span *ngIf="post.authorslist?.length">
+    <span *ngFor="let val of post.authorslist">
+      <a [routerLink]="['/search', '-a ' + val]">{{ val }}</a>
+    </span>
+  </span>
+</td>
+
+</tr>
+</tbody>
+</table>
 `
 }).Class({
     constructor:
@@ -115,13 +144,20 @@ let JekyllmkFTS = ng.core.Component({
 	 })
 
 	 this.result = []
+	 this.help = false
+	 this.help_anchor_text = 'Help'
      }],
+
+    help_toggle: function() {
+	this.help = !this.help
+	this.help_anchor_text = this.help ? 'Hide' : 'Help'
+    },
 
     on_submit: function() {
 	console.log("JekyllmkFTS: on_submit")
 	this.title.setTitle(`${JekyllmkConfig.title} :: FTS :: ${this.query}`)
 	if (!this.query) {
-	    this.error = 'the query is empty'
+	    this.error = 'The query is empty.'
 	    return
 	}
 
@@ -130,7 +166,8 @@ let JekyllmkFTS = ng.core.Component({
 		this.error = null
 		this.result = data
 	    }).catch( err => {
-		this.error = `failed to load the response from the database server at ${JekyllmkConfig.fts}`
+		this.result = []
+		this.error = err.statusText ? err.statusText : `Failed to load the response from the database server at ${JekyllmkConfig.fts}.`
 		console.log(err)
 	    })
 

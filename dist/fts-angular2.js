@@ -42,7 +42,8 @@ var JekyllmkFTSService = ng.core.Class({
 
 var JekyllmkFTS = ng.core.Component({
 		selector: 'search',
-		template: '\n<h2>Full Text Search</h2>\n\n<form (ngSubmit)="on_submit()">\n  <p>\n  <label>\n  Usage: [-t tag] [-a author] [-d date1[,date2] query\n  <br>\n  <input type="text" spellCheck="false"\n   required [(ngModel)]="query" [ngModelOptions]="{standalone: true}">\n  </label>\n\n  <input type="submit">\n  </p>\n</form>\n\n<p *ngIf="error">\n  Error: {{ error }}\n</p>\n\n<p *ngIf="result.length == 0">\n  No match.\n</p>\n\n<p *ngIf="result.length != 0">\n  Matched: {{ result.length }} post(s).\n</p>\n\n<ul>\n  <li *ngFor="let post of result">\n    <p>\n    <span *ngIf="!post._page">\n    {{ post.year }}/{{ post.month }}/{{ post.day }}\n    </span>\n    <a href="{{post._href}}">{{ post.subject }}</a>\n\n    <span *ngIf="post.tagslist?.length">\n      &nbsp;&nbsp;\n      <span *ngFor="let val of post.tagslist">\n        <a [routerLink]="[\'/search\', \'-t \' + val]">{{ val }}</a>\n      </span>\n    </span>\n    <span *ngIf="post.authorslist?.length">\n      &nbsp;&nbsp;\n      <span *ngFor="let val of post.authorslist">\n        <a [routerLink]="[\'/search\', \'-a \' + val]">{{ val }}</a>\n      </span>\n    </span>\n\n    <span *ngIf="post.snippet">\n      <br>\n      {{ post.snippet }}\n    </span>\n    </p>\n  </li>\n</ul>\n'
+		styles: ['\ntd {\n  vertical-align: top;\n  padding: 0 1em;\n}\ntd:first-child {\n  padding-left: 0;\n}\ntr:nth-child(even) {\n  background-color: #f2f2f2;\n}\nform div {\n  display: flex;\n}\nform div input[type="text"] {\n  flex-grow: 1;\n  margin-right: 0.5em;\n}\n'],
+		template: '\n<h2>Full Text Search</h2>\n\n<form (ngSubmit)="on_submit()">\n  <a href="javascript:void(0)"\n     (click)="help_toggle()">{{ help_anchor_text }}</a><br>\n  <label [hidden]="!help" for="jekyllmk_fts--input">\n    Usage: [-t tag] [-a author] [-d date1[,date2] <i>query</i><br>\n    <i>Query</i> expression is a <a href="https://www.sqlite.org/fts3.html#full_text_index_queries">sqlite3 full-text index</a> DSL.<br>\n    Examples:<br>\n    <pre>\n\t-d 2016,2017 spain\n\t-d 2016-01-01,2016-12-12 -a ag -t quote  spain</pre>\n  </label>\n\n  <div>\n  <input type="text" spellCheck="false" id="jekyllmk_fts--input"\n   required [(ngModel)]="query" [ngModelOptions]="{standalone: true}">\n  <input type="submit">\n  </div>\n</form>\n\n<p *ngIf="error">\n  <b>{{ error }}</b>\n</p>\n\n<p *ngIf="result.length == 0">\n  No match.\n</p>\n\n<p *ngIf="result.length != 0">\n  Matched: {{ result.length }} post(s).\n</p>\n\n<table>\n<tbody>\n<tr *ngFor="let post of result">\n\n<td>\n  <a href="{{post._href}}">{{ post.subject }}</a><br>\n  <span *ngIf="!post._page">\n    {{ post.year }}/{{ post.month }}/{{ post.day }}\n  </span>\n\n  <p *ngIf="post.snippet">{{ post.snippet }}</p>\n</td>\n\n<td>\n  <span *ngIf="post.tagslist?.length">\n    <span *ngFor="let val of post.tagslist">\n      <a [routerLink]="[\'/search\', \'-t \' + val]">{{ val }}</a>\n    </span>\n  </span>\n</td>\n\n<td>\n  <span *ngIf="post.authorslist?.length">\n    <span *ngFor="let val of post.authorslist">\n      <a [routerLink]="[\'/search\', \'-a \' + val]">{{ val }}</a>\n    </span>\n  </span>\n</td>\n\n</tr>\n</tbody>\n</table>\n'
 }).Class({
 		constructor: [ng.router.Router, ng.router.ActivatedRoute, ng.common.Location, ng.platformBrowser.Title, JekyllmkFTSService, function (router, activated_route, location, title, server) {
 				var _this = this;
@@ -60,7 +61,14 @@ var JekyllmkFTS = ng.core.Component({
 				});
 
 				this.result = [];
+				this.help = false;
+				this.help_anchor_text = 'Help';
 		}],
+
+		help_toggle: function help_toggle() {
+				this.help = !this.help;
+				this.help_anchor_text = this.help ? 'Hide' : 'Help';
+		},
 
 		on_submit: function on_submit() {
 				var _this2 = this;
@@ -68,7 +76,7 @@ var JekyllmkFTS = ng.core.Component({
 				console.log("JekyllmkFTS: on_submit");
 				this.title.setTitle(JekyllmkConfig.title + ' :: FTS :: ' + this.query);
 				if (!this.query) {
-						this.error = 'the query is empty';
+						this.error = 'The query is empty.';
 						return;
 				}
 
@@ -76,7 +84,8 @@ var JekyllmkFTS = ng.core.Component({
 						_this2.error = null;
 						_this2.result = data;
 				}).catch(function (err) {
-						_this2.error = 'failed to load the response from the database server at ' + JekyllmkConfig.fts;
+						_this2.result = [];
+						_this2.error = err.statusText ? err.statusText : 'Failed to load the response from the database server at ' + JekyllmkConfig.fts + '.';
 						console.log(err);
 				});
 
