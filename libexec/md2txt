@@ -20,6 +20,7 @@ let frontmatter_strip = function(str) {
 
     let r = fm(str)
     let subject = (r.attributes.subject || '') + '\n'
+    // maybe we shouldn't include tags in the output?
     let tags = tags_normalize(r.attributes.tags || '')
 	.map( val => val.toLowerCase()).join(', ')
 
@@ -64,7 +65,9 @@ let md2txt = function(markdown) {
     renderer.code = (code, _lang) => html_decode(code) + "\n\n"
     renderer.blockquote = (quote) => quote
     renderer.html = (html) => {
-	// not sure this is what we should do
+	// not sure this is what we should do, for <such> strings, for
+	// example, are removed; the obvious solution would be to
+	// strip out only a known set of html elements.
 	return html_strip(html)
     }
     renderer.heading = (text, _level) => text
@@ -83,5 +86,14 @@ let md2txt = function(markdown) {
     return marked(markdown, { renderer })
 }
 
-let md = md2txt(frontmatter_strip(fs.readFileSync('/dev/stdin').toString()))
-process.stdout.write(md)
+
+if (__filename === process.argv[1]) {
+    if (process.argv.length !== 3) {
+	console.error(`Usage: md2txt file.md`)
+	process.exit(1)
+    }
+    let md = md2txt(frontmatter_strip(fs.readFileSync(process.argv[2]).toString()))
+    process.stdout.write(md)
+} else {
+    exports.md2txt = md2txt
+}
