@@ -64,6 +64,23 @@ form a:first-child {
   display: inline-block;
   margin-bottom: .3em;
 }
+
+#jekyllmk_fts--spinner {
+  border: 0.5em solid blue;
+  border-radius: 50%;
+  border-top: 0.5em solid gold;
+  width: 32px;
+  height: 32px;
+  animation: jekyllmk_fts--spin 1s linear infinite;
+
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 1em;
+}
+@keyframes jekyllmk_fts--spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 `],
     template: `
 <h2>Full Text Search</h2>
@@ -88,11 +105,13 @@ form a:first-child {
   </div>
 </form>
 
+<div *ngIf="in_progress" id="jekyllmk_fts--spinner"></div>
+
 <p *ngIf="error">
   <b>{{ error }}</b>
 </p>
 
-<p *ngIf="result.length == 0">
+<p *ngIf="result.length == 0 && !error && !in_progress">
   No match.
 </p>
 
@@ -154,6 +173,7 @@ form a:first-child {
 	 this.result = []
 	 this.help = false
 	 this.help_anchor_text = 'Help'
+	 this.in_progress = false
      }],
 
     help_toggle: function() {
@@ -169,11 +189,14 @@ form a:first-child {
 	    return
 	}
 
+	this.in_progress = true
+	this.error = null
 	this.server.xjson$(this.query).toPromise()
 	    .then( data => {
-		this.error = null
+		this.in_progress = false
 		this.result = data
 	    }).catch( err => {
+		this.in_progress = false
 		this.result = []
 		this.error = err.statusText ? err.statusText : `Failed to load the response from the database server at ${JekyllmkConfig.fts}.`
 		console.log(err)
