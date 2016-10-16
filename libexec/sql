@@ -8,8 +8,40 @@
 
 let fs = require('fs')
 let path = require('path')
+let spawn = require('child_process').spawn
 
-let q = require('./lib/query').q
+let q = require('../lib/query').q
+
+let readfile = function(name) {
+    let stdout = []
+    let stderr = []
+    return new Promise( (resolve, reject) => {
+	let md2txt = spawn(path.join(__dirname, 'md2txt'), [name])
+
+	md2txt.stdout.on('data', chunk => stdout.push(chunk))
+	md2txt.stderr.on('data', chunk => stderr.push(chunk))
+
+	md2txt.on('close', code => {
+	    if (code === 0) {
+		resolve(stdout.join(''))
+	    } else {
+		reject(new Error(`"md2txt < ${name}" failed; exit code: ${code}
+md2txt stderr:
+${stderr.join('')}`))
+	    }
+	})
+    })
+}
+
+let corpora_insert = function(id, filename) {
+    readfile(filename).then( txt => {
+	o(`insert into corpora values(${id}, '${q(txt)}')`)
+    }).catch (err => {
+	console.error(err)
+	process.exit(1)
+    })
+}
+
 
 if (process.argv.length !== 3) {
     console.error(`Usage: fts-sql.js path/to/index.json`)
@@ -46,7 +78,7 @@ site_index.posts.forEach( post => {
     let file = path.join(path.dirname(process.argv[2]),
 			 post.y, post.m, post.d, post.n + '.md')
     o(`insert into posts values(${post_id}, ${post.y}, ${post.m}, ${post.d}, '${q(post.n)}', '${q(post.s)}')`)
-    o(`insert into corpora values(${post_id}, readfile('${file}'))`)
+    corpora_insert(post_id, file) // async
 
     post.t.forEach( id => {
     	o(`insert into posts_tags values(${post_id}, ${id})`)
@@ -63,7 +95,7 @@ site_index.pages.forEach( page => {
     let file = path.join(path.dirname(process.argv[2]),
 			 'p', page.n + '.md')
     o(`insert into posts values(${post_id}, NULL, NULL, NULL, '${q(page.n)}', '${q(page.s)}')`)
-    o(`insert into corpora values(${post_id}, readfile('${file}'))`)
+    corpora_insert(post_id, file) // async
     post_id++
 })
 
