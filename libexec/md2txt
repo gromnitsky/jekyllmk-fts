@@ -41,16 +41,23 @@ let md2txt = function(markdown) {
     renderer.br = () => "\n"
     renderer.del = (text) => text
     renderer.link = (href, title, string) => {
-	let r = `${string} (${href})`
-	if (href === string || string === '') {
-	    r = href
-	}
-
+	// string is already html decoded
+	title = html_decode(title || '')
+	let r = `${string} (${html_decode(href)})`
+	if (href === string || string === '') r = html_decode(href)
 	if (title) return `${r} (${title})`
 	return r
     }
-    renderer.image = (href, title, string) => {
-	return renderer.link(href, title, string)
+    renderer.image = function(href, title, string) {
+	href = html_decode(href)
+	title = html_decode(title || '')
+	// I thought it would be as in renderer.link() but it's not
+	string = html_decode(string)
+
+	let r = `${href} (${string})`
+	if (href === string || string === '') r = href
+	if (title) return `${r} (${title})`
+	return r
     }
 
     // block
@@ -61,7 +68,7 @@ let md2txt = function(markdown) {
 	return html_strip(html)
     }
     renderer.heading = (text, _level) => text
-    renderer.hr = () => ''
+    renderer.hr = () => "\n"
     renderer.list = (body, _ordered) => body + "\n"
     renderer.listitem = (text) => '* ' + text + "\n"
     renderer.paragraph = (text) => {
