@@ -110,7 +110,7 @@ form a:first-child {
     {{ post.year }}/{{ post.month }}/{{ post.day }}
   </span>
 
-  <p *ngIf="post.snippet">{{ post.snippet }}</p>
+  <p *ngIf="post.snippet" [innerHTML]="post.snippet"></p>
 </td>
 
 <td>
