@@ -1,0 +1,80 @@
+#!/usr/bin/env node
+
+'use strict';
+
+let fs = require('fs')
+
+let fm = require('front-matter')
+let marked = require('marked')
+let _ = require('lodash')
+let html_decode = require('ent/decode')
+
+let tags_normalize = function(something) {
+    return _.uniq([].concat(something)
+		  .map( val => val.replace(/\s+/g, ' ').trim())
+		  .filter( val => val.length))
+}
+
+let frontmatter_strip = function(str) {
+    if (!str) return ''
+
+    let r = fm(str)
+    let subject = (r.attributes.subject || '') + '\n'
+    let tags = tags_normalize(r.attributes.tags || '')
+	.map( val => val.toLowerCase()).join(', ')
+
+    return [subject, tags, r.body].join("\n")
+}
+
+let html_strip = function(str) {
+    return str.replace(/<(?:.|\n)*?>/gm, '').trim()
+}
+
+let md2txt = function(markdown) {
+    let renderer = new marked.Renderer();
+
+    // inline
+    renderer.text = (text) => html_decode(text)
+    renderer.strong = (text) => text
+    renderer.em = (text) => text
+    renderer.codespan = (code) => html_decode(code)
+    renderer.br = () => "\n"
+    renderer.del = (text) => text
+    renderer.link = (href, title, string) => {
+	let r = `${string} (${href})`
+	if (href === string || string === '') {
+	    r = href
+	}
+
+	if (title) return `${r} (${title})`
+	return r
+    }
+    renderer.image = (href, title, string) => {
+	return renderer.link(href, title, string)
+    }
+
+    // block
+    renderer.code = (code, _lang) => html_decode(code) + "\n\n"
+    renderer.blockquote = (quote) => quote
+    renderer.html = (html) => {
+	// not sure this is what we should do
+	return html_strip(html)
+    }
+    renderer.heading = (text, _level) => text
+    renderer.hr = () => ''
+    renderer.list = (body, _ordered) => body + "\n"
+    renderer.listitem = (text) => '* ' + text + "\n"
+    renderer.paragraph = (text) => {
+	// marked puts a genuine html here, like an img tag with a
+	// class attr :(
+	return html_strip(text) + "\n\n"
+    }
+    renderer.tablecell = (content, _flags) => content + '  '
+    renderer.tablerow = (content) => content + "\n"
+    renderer.table = (header, body) => [header, body].join("\n") + "\n"
+
+    return marked(markdown, { renderer })
+}
+
+let md = md2txt(frontmatter_strip(fs.readFileSync('/dev/stdin').toString()))
+process.stdout.write(md)
