@@ -1,4 +1,11 @@
 {
+    "engines": {
+	"node": "6.8.1"
+    },
+    "scripts": {
+	"start": "node fts-server"
+    },
+
     "name": "jekyllmk-fts",
     "private": true,
     "version": "0.0.1",
