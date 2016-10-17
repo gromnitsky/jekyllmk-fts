@@ -48,8 +48,8 @@ $ curl -s http://127.0.0.1:3000?q=angular
 
 ## Integration w/ jekyllmk
 
-1. Copy `fts-angular2.js` to the directory w/ your blog sources
-   (**not** to the jekyllmk's repo!).
+1. Copy `dist/fts-angular2.js` to the root directory of your blog
+   sources (**not** to the jekyllmk's repo!).
 
 2. Add to `config.json`:
 
