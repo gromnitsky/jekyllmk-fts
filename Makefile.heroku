@@ -1,0 +1,20 @@
+# -*-makefile-gmake-*-
+
+INDEX := ~/lib/writing/sigwait.tk-out/production/site/index.json
+
+.PHONY: db
+db: fts.sqlite3
+
+fts.sqlite3: $(INDEX)
+	./fts-new $<
+
+$(INDEX): switch-to-heroku
+
+.PHONY: switch-to-heroku
+switch-to-heroku:
+	git checkout heroku
+
+.PHONY: deploy
+deploy: db
+	git commit -m db
+	git push heroku heroku:master
