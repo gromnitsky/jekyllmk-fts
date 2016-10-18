@@ -16,5 +16,5 @@ switch-to-heroku:
 
 .PHONY: deploy
 deploy: db
-	git commit -m db
+	git commit -am db
 	git push heroku heroku:master
