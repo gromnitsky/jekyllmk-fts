@@ -9,18 +9,34 @@ suite('md2txt', function() {
     })
 
     test('samples', function(done) {
+//	this.timeout(5000)
 	let files = fs.readdirSync(path.join(__dirname, 'data', 'md2txt'))
 	    .filter( name => path.extname(name) === '.md')
 	    .map( name => path.join(__dirname, 'data', 'md2txt', name))
+	let promises = []
 	files.forEach( src => {
-	    fs.readFile(src, (err, data) => {
-		if (err) throw err;
-		let txt = md2txt(data.toString())
-		fs.readFile(src.replace(/md$/, 'txt'), (err, data) => {
-		    assert.equal(txt, data.toString())
-		    done()
+	    let p = new Promise( (resolve, reject) => {
+		fs.readFile(src, (err, data) => {
+		    if (err) {
+			reject(err)
+			return
+		    }
+		    let txt = md2txt(data.toString())
+		    fs.readFile(src.replace(/md$/, 'txt'), (err, data) => {
+			if (err) {
+			    reject(err)
+			    return
+			}
+			assert.equal(txt, data.toString())
+			resolve(true)
+		    })
 		})
 	    })
+
+	    promises.push(p)
 	})
+
+	Promise.all(promises).then( () => done())
     })
+
 })

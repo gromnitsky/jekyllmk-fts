@@ -31,6 +31,13 @@ let html_strip = function(str) {
     return str.replace(/<(?:.|\n)*?>/gm, '').trim()
 }
 
+function html_escape(str) {
+  return str
+	.replace(/&/g, '&amp;')
+	.replace(/</g, '&lt;')
+	.replace(/>/g, '&gt;')
+}
+
 let md2txt = function(markdown) {
     let renderer = new marked.Renderer();
 
@@ -38,7 +45,7 @@ let md2txt = function(markdown) {
     renderer.text = (text) => html_decode(text)
     renderer.strong = (text) => text
     renderer.em = (text) => text
-    renderer.codespan = (code) => html_decode(code)
+    renderer.codespan = (code) => html_escape(html_decode(code))
     renderer.br = () => "\n"
     renderer.del = (text) => text
     renderer.link = (href, title, string) => {
@@ -62,13 +69,13 @@ let md2txt = function(markdown) {
     }
 
     // block
-    renderer.code = (code, _lang) => html_decode(code) + "\n\n"
+    renderer.code = (code, _lang) => html_escape(html_decode(code)) + "\n\n"
     renderer.blockquote = (quote) => quote
     renderer.html = (html) => {
 	// not sure this is what we should do, for <such> strings, for
 	// example, are removed; the obvious solution would be to
 	// strip out only a known set of html elements.
-	return html_strip(html)
+	return html_strip(html) + "\n\n"
     }
     renderer.heading = (text, _level) => text
     renderer.hr = () => "\n"
