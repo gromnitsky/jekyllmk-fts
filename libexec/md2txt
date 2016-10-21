@@ -31,11 +31,12 @@ let html_strip = function(str) {
     return str.replace(/<(?:.|\n)*?>/gm, '').trim()
 }
 
+// replace <,>,& with a similar looking chars
 function html_escape(str) {
   return str
-	.replace(/&/g, '&amp;')
-	.replace(/</g, '&lt;')
-	.replace(/>/g, '&gt;')
+	.replace(/&/g, 'ε')	// Greek small letter epsilon
+	.replace(/</g, '‹')	// single left-pointing angle quotation mark
+	.replace(/>/g, '›')	// single right-pointing ...
 }
 
 let md2txt = function(markdown) {
