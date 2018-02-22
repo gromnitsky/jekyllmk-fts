@@ -1,46 +1,43 @@
 {
     "engines": {
-	"node": "6.8.1"
+        "node": "8.9.4"
     },
     "scripts": {
-	"start": "node fts-server"
+        "start": "node fts-server"
     },
-
     "name": "jekyllmk-fts",
     "private": true,
     "version": "0.0.1",
     "description": "FTS via sqlite3 for jekyllmk",
     "main": "fts-sql.js",
     "dependencies": {
-	"minimist": "~1.2.0",
-	"lodash": "~4.13.1",
-	"sqlite3": "~3.1.6",
-	"shell-quote": "~1.6.1",
-	"marked": "~0.3.6",
-	"front-matter": "~2.1.0",
-	"ent": "~2.2.0"
+        "minimist": "~1.2.0",
+        "lodash": "~4.13.1",
+        "sqlite3": "~3.1.6",
+        "shell-quote": "~1.6.1",
+        "marked": "~0.3.6",
+        "front-matter": "~2.1.0",
+        "ent": "~2.2.0"
     },
     "devDependencies": {
-	"mocha": "~3.1.0",
-
-	"zone.js": "~0.6.25",
-	"reflect-metadata": "~0.1.8",
-	"rxjs": "5.0.0-beta.12",
-	"@angular/core": "~2.0.2",
-	"@angular/common": "~2.0.2",
-	"@angular/compiler": "~2.0.2",
-	"@angular/platform-browser": "~2.0.2",
-	"@angular/platform-browser-dynamic": "~2.0.2",
-	"@angular/http": "~2.0.2",
-	"@angular/forms": "~2.0.2",
-	"@angular/router": "~3.0.2",
-
-	"systemjs": "~0.19.39"
+        "mocha": "~3.1.0",
+        "zone.js": "~0.6.25",
+        "reflect-metadata": "~0.1.8",
+        "rxjs": "5.0.0-beta.12",
+        "@angular/core": "~2.0.2",
+        "@angular/common": "~2.0.2",
+        "@angular/compiler": "~2.0.2",
+        "@angular/platform-browser": "~2.0.2",
+        "@angular/platform-browser-dynamic": "~2.0.2",
+        "@angular/http": "~2.0.2",
+        "@angular/forms": "~2.0.2",
+        "@angular/router": "~3.0.2",
+        "systemjs": "~0.19.39"
     },
     "keywords": [
-	"fts",
-	"sqlite",
-	"jekyllmk"
+        "fts",
+        "sqlite",
+        "jekyllmk"
     ],
     "author": "Alexander Gromnitsky",
     "license": "MIT"
