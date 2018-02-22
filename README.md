@@ -58,8 +58,8 @@ $ curl -s http://127.0.0.1:3000?q=angular
 That's all! After you regenerate the blog, the sidebar will have a
 "Search" link.
 
-A live example: http://sigwait.tk/blog/#/search (the blog is hosted on
-a petty openwrt router but the FTS server is on Heroku).
+A live example: http://gromnitsky.users.sourceforge.net/blog/#/search
+(a blog is hosted on sourceforge but the FTS server is on Heroku).
 
 
 ## Bugs
